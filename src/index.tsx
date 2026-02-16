@@ -1,41 +1,44 @@
-import { TextAttributes } from "@opentui/core";
+import { addDefaultParsers } from "@opentui/core";
 import { render } from "@opentui/solid";
-import { createResource, createSignal } from "solid-js";
+import { parserRegistry } from "@/themes";
+import arg from "arg";
+import Editor from "./components/editor";
 
-const fetchUser = async (id: number | string) => {
-  if (id === null || id === 0) {
-    return null;
-  }
-  const people = await fetch(`https://swapi.dev/api/people/${id}/`);
-  return people.json();
-};
+// Initialize parsers with Helix queries
+addDefaultParsers(parserRegistry);
+
+const args = arg({
+  // Types
+  "--help": Boolean,
+  "--file": String,
+  "-f": "--file",
+});
+//<text>{args["--file"]}</text>
 const App = () => {
-  const [userId, setUserId] = createSignal<string | number | null>(null);
-
-  const [user] = createResource(userId, fetchUser);
+  if (!args["--file"]) {
+    return (
+      <box
+        width="100%"
+        height="100%"
+        padding={1}
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <text>No file provided</text>
+      </box>
+    );
+  }
   return (
     <box
+      width="100%"
+      height="100%"
       padding={1}
-      width={"100%"}
-      height={"100%"}
-      flexDirection="row"
+      flexDirection="column"
       alignItems="center"
       justifyContent="center"
     >
-      <box border={true} padding={1}>
-        <input
-          width={20}
-          backgroundColor="#1a1a1a"
-          focusedBackgroundColor="#2a2a2a"
-          placeholder="Please enter an userId"
-          onInput={(value) => setUserId(value)}
-        />
-      </box>
-      <box border={true}>
-        <scrollbox height={40} width={70}>
-          <text fg={"#C4693D"}>{JSON.stringify(user(), null, 2)}</text>
-        </scrollbox>
-      </box>
+      <Editor mdFilePath={args["--file"]} />
     </box>
   );
 };
